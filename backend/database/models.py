@@ -16,7 +16,3 @@ class Document(Base):
 def init_db(engine):
     """Creates the database tables if they don't exist."""
     Base.metadata.create_all(bind=engine)
-
-# Example usage:
-# engine = create_engine('postgresql://postgres:password@localhost:5432/yourdb')
-# init_db(engine)
