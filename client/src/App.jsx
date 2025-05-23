@@ -18,9 +18,6 @@ function App() {
     }));
 
     try {
-      // In a real app, you would call your API here
-      // const response = await uploadDocument(file);
-      // Simulating API call with timeout
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       setDocumentInfo({
