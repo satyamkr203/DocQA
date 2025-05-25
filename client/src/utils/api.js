@@ -1,12 +1,13 @@
 import axios from 'axios';
-
+// base url is -> "http://localhost:8000/api";
+// backend url -> 
 const API_BASE = "https://docqa-0e2c.onrender.com/api";
 
 
 // Configure axios instance with default settings
 const apiClient = axios.create({
   baseURL: API_BASE,
-  timeout: 30000,
+  timeout: 45000,
   headers: {
     'Accept': 'application/json',
   }

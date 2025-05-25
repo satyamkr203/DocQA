@@ -21,8 +21,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://doc-qa-azure.vercel.app",
-        "http://localhost:3000"
-    ],  # Only allow frontend deployed URL + localhost dev URL
+        "http://localhost:5173",
+    ], # frontend url and the localhost url 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,8 +36,7 @@ qa_service = QAService(api_key=os.getenv("TOGETHER_API_KEY"))
 class QuestionRequest(BaseModel):
     document_id: int
     question: str
-
-# Explicit OPTIONS handlers for preflight requests
+# check the routes connection 
 @app.options("/api/upload")
 async def upload_options():
     return {"message": "OK"}

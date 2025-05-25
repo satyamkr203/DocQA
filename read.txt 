@@ -1,0 +1,21 @@
+
+
+### ✅ High-Level System Design 
+
+> “At a high level, the system allows users to upload PDF documents. Once uploaded:
+>
+> 1. The text is extracted from the PDF and **split into smaller chunks** (e.g., paragraphs or sections).
+>
+> 2. Each chunk is converted into an **embedding** — a numerical vector that captures its semantic meaning — using a model like BAAI/bge-small.
+>
+> 3. These embeddings are stored in a **vector store** (like LlamaIndex's internal store or a vector database).
+>
+> 4. When the user submits a **query**, it is also embedded into a vector.
+>
+> 5. We perform a **semantic similarity search** against the stored document embeddings to find the most relevant chunks.
+>
+> 6. The top-k relevant chunks are passed along with the original query to a **Large Language Model** (like LLaMA 3 70B) which then generates a final, natural-language answer.
+>
+> This approach ensures the model focuses only on contextually relevant parts of the document, making the QA process efficient and accurate.”
+
+---
