@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = "https://docqa-0e2c.onrender.com/api";
+
 
 // Configure axios instance with default settings
 const apiClient = axios.create({

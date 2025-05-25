@@ -17,16 +17,17 @@ from services.qa_service import QAService
 
 init_db(engine)
 app = FastAPI(title="PDF Q&A")
-
-# Enhanced CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=[
+        "https://doc-qa-azure.vercel.app",
+        "http://localhost:3000"
+    ],  # Only allow frontend deployed URL + localhost dev URL
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-    expose_headers=["*"],  # Exposes all headers
-    max_age=600,  # How long the results of a preflight request can be cached
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 document_service = DocumentService()
