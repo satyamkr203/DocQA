@@ -8,7 +8,7 @@
 __pycache__/
 
 # Ignore requirements.txt (if you don't want it to be tracked)
-requirements.txt
+#requirements.txt
 
 # Ignore pdf_qa_db (if it's a folder or file)
 pdf_qa_db/
