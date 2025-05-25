@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { uploadDocument } from '../utils/api';
+import { uploadDocument } from '../utils/api.js';
 
 const FileUpload = ({ onFileUpload }) => {
   const [isUploading, setIsUploading] = useState(false);

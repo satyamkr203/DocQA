@@ -10,29 +10,14 @@ function App() {
     error: null
   });
 
-  const handleFileUpload = async (file) => {
-    setDocumentInfo(prev => ({
-      ...prev,
-      isLoading: true,
+  // Accept id and name from FileUpload, not file
+  const handleFileUpload = (id, name) => {
+    setDocumentInfo({
+      id,
+      name,
+      isLoading: false,
       error: null
-    }));
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setDocumentInfo({
-        id: 'simulated-doc-id', // response.documentId in real app
-        name: file.name,
-        isLoading: false,
-        error: null
-      });
-    } catch (error) {
-      setDocumentInfo(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error.message || 'Failed to upload document'
-      }));
-    }
+    });
   };
 
   const resetDocument = () => {
@@ -51,14 +36,12 @@ function App() {
         documentName={documentInfo.name}
         isLoading={documentInfo.isLoading}
       />
-      
       <main className="flex-1 overflow-hidden">
         {documentInfo.error && (
           <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
             <p>{documentInfo.error}</p>
           </div>
         )}
-
         {documentInfo.id ? (
           <ChatInterface 
             documentId={documentInfo.id} 
@@ -89,7 +72,6 @@ function App() {
                 Upload a PDF document to start asking questions about its content.
                 Get instant answers powered by AI.
               </p>
-              
               {documentInfo.isLoading ? (
                 <div className="flex justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

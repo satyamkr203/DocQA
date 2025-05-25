@@ -32,6 +32,7 @@ const ChatInterface = ({ documentId, documentName }) => {
 
     try {
       const response = await askQuestion(documentId, inputValue);
+      console.log('Backend response:', response); // DEBUG
       const botMessage = {
         text: response.answer,
         sender: 'bot',
@@ -39,6 +40,7 @@ const ChatInterface = ({ documentId, documentName }) => {
       };
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
+      console.error('Error from askQuestion:', error); // DEBUG
       const errorMessage = {
         text: error.message || 'Failed to get answer',
         sender: 'bot',
@@ -56,7 +58,6 @@ const ChatInterface = ({ documentId, documentName }) => {
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">Chat about: {documentName}</h2>
       </div>
-      
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, index) => (
           <div
@@ -105,7 +106,6 @@ const ChatInterface = ({ documentId, documentName }) => {
         )}
         <div ref={messagesEndRef} />
       </div>
-
       <div className="p-4 border-t">
         <div className="flex">
           <input

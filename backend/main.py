@@ -1,78 +1,77 @@
-import logging
-from fastapi import FastAPI, UploadFile, File, HTTPException
+import os
+from dotenv import load_dotenv
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
+from sqlalchemy.orm import Session
+import logging
+
+load_dotenv()
+
+# Initialize components
+from database.models import init_db
+from database.session import engine, get_db
 from services.document_service import DocumentService
 from services.qa_service import QAService
-from database.models import init_db
-from database.session import engine
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+init_db(engine)
+app = FastAPI(title="PDF Q&A")
 
-app = FastAPI(title="PDF Q&A Backend")
-
-# Configure CORS
+# Enhanced CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+    expose_headers=["*"],  # Exposes all headers
+    max_age=600,  # How long the results of a preflight request can be cached
 )
 
-# Initialize services
 document_service = DocumentService()
-qa_service = QAService()
-
-# Initialize database
-init_db(engine)
+qa_service = QAService(api_key=os.getenv("TOGETHER_API_KEY"))
 
 class QuestionRequest(BaseModel):
-    document_id: str
+    document_id: int
     question: str
 
-class Answer(BaseModel):
-    content: str
-    document_id: str
-    timestamp: datetime
+# Explicit OPTIONS handlers for preflight requests
+@app.options("/api/upload")
+async def upload_options():
+    return {"message": "OK"}
+
+@app.options("/api/question")
+async def question_options():
+    return {"message": "OK"}
 
 @app.post("/api/upload")
-async def upload_document(file: UploadFile = File(...)):
-    if not file.filename.endswith('.pdf'):
-        logger.warning(f"Invalid file type uploaded: {file.filename}")
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
-    
+async def upload(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
-        logger.info(f"Uploading file: {file.filename}")
-        document = await document_service.save_document(file)
-        logger.info(f"Document uploaded successfully: {document.id}")
-        return document
+        doc = await document_service.save_document(file, db)
+        return {
+            "id": doc.id,
+            "name": doc.name,
+            "size": doc.size,
+            "upload_date": doc.upload_date
+        }
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.error(f"Error occurred during file upload: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        logging.error(f"Upload failed: {str(e)}")
+        raise HTTPException(500, "Upload failed")
 
-@app.post("/api/question", response_model=Answer)
-async def ask_question(request: QuestionRequest):
+@app.post("/api/question")
+async def ask_question(request: QuestionRequest, db: Session = Depends(get_db)):
     try:
-        logger.info(f"Received question for document {request.document_id}: {request.question}")
-        answer = await qa_service.get_answer(request.document_id, request.question)
-        logger.info(f"Answer found for document {request.document_id}")
-        return Answer(
-            content=answer,
-            document_id=request.document_id,
-            timestamp=datetime.now()
-        )
+        answer = await qa_service.get_answer(request.document_id, request.question, db)
+        return {"answer": answer}
+    except ValueError as e:
+        raise HTTPException(400, str(e))
     except Exception as e:
-        logger.error(f"Error occurred while processing question for document {request.document_id}: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        logging.error(f"QA failed: {str(e)}")
+        raise HTTPException(500, "Processing failed")
 
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Starting the FastAPI server...")
     uvicorn.run(app, host="0.0.0.0", port=8000)
