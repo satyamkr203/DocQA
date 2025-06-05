@@ -1,6 +1,6 @@
-# AskPdf
+# DocQA
 
-AskPdf is a full-stack application that enables users to upload PDFs and interact with their contents using AI-powered chat. The backend is built with **FastAPI**, uses **PostgreSQL** for metadata, and stores uploaded files locally. The frontend is a **React** SPA. **LlamaIndex** and **LangChain** power the PDF Q&A features.
+DocQA is a full-stack application that enables users to upload PDFs and interact with their contents using AI-powered chat. The backend is built with **FastAPI**, uses **PostgreSQL** for metadata, and stores uploaded files locally. The frontend is a **React** SPA. **LlamaIndex** and **LangChain** power the PDF Q&A features.
 
 ---
 
