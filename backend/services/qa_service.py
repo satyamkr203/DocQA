@@ -24,8 +24,6 @@ class QAService:
     def __init__(self, api_key: str):
         self.logger = logging.getLogger(__name__)
         self.api_key = api_key
-
-        # Lazy-loaded objects (IMPORTANT)
         self.llm = None
         self.service_context = None
 
@@ -48,10 +46,6 @@ class QAService:
                 top_p=0.9,
                 request_timeout=45,
             )
-
-            # IMPORTANT:
-            # Do NOT use HuggingFace embeddings in Railway
-            # This avoids torch / CUDA installs
             self.service_context = ServiceContext.from_defaults(
                 llm=self.llm,
                 chunk_size=512,
@@ -101,7 +95,6 @@ class QAService:
     async def get_answer(self, doc_id: int, question: str, db: Session) -> str:
         """Query document with retry handling"""
         try:
-            # Lazy init happens HERE (runtime only)
             self._initialize_services()
 
             doc = db.query(Document).filter(Document.id == doc_id).first()
