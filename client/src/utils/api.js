@@ -1,7 +1,7 @@
 import axios from 'axios';
-// base url is -> "http://localhost:8000/api";
-// backend url -> 
-const API_BASE = "https://docqa-0e2c.onrender.com/api";
+// base url is -> "";
+// backend url -> https://docqa-0e2c.onrender.com/api
+const API_BASE = "http://localhost:8000/api";
 
 
 // Configure axios instance with default settings
