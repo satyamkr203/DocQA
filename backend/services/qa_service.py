@@ -6,15 +6,14 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 from tenacity import retry, stop_after_attempt, wait_exponential
+
 from llama_index.core import (
     VectorStoreIndex,
     ServiceContext,
     StorageContext,
     load_index_from_storage,
 )
-
 from llama_index.llms.together import TogetherLLM
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.readers.file import PDFReader
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -24,14 +23,25 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class QAService:
     def __init__(self, api_key: str):
         self.logger = logging.getLogger(__name__)
-        self._initialize_services(api_key)
+        self.api_key = api_key
+
+        # Lazy-loaded objects (IMPORTANT)
+        self.llm = None
+        self.service_context = None
+
         os.makedirs("storage", exist_ok=True)
 
-    def _initialize_services(self, api_key: str):
-        """Initialize LLM + Embedding models"""
+    def _initialize_services(self):
+        """
+        Lazy initialization to avoid heavy work during
+        build / import time on Railway
+        """
+        if self.service_context:
+            return
+
         try:
             self.llm = TogetherLLM(
-                api_key=api_key,
+                api_key=self.api_key,
                 model="meta-llama/Llama-3-70b-chat-hf",
                 temperature=0.2,
                 max_tokens=768,
@@ -39,13 +49,11 @@ class QAService:
                 request_timeout=45,
             )
 
-            self.embed_model = HuggingFaceEmbedding(
-                model_name="BAAI/bge-small-en-v1.5"
-            )
-
+            # IMPORTANT:
+            # Do NOT use HuggingFace embeddings in Railway
+            # This avoids torch / CUDA installs
             self.service_context = ServiceContext.from_defaults(
                 llm=self.llm,
-                embed_model=self.embed_model,
                 chunk_size=512,
                 chunk_overlap=128,
             )
@@ -93,8 +101,10 @@ class QAService:
     async def get_answer(self, doc_id: int, question: str, db: Session) -> str:
         """Query document with retry handling"""
         try:
-            doc = db.query(Document).filter(Document.id == doc_id).first()
+            # Lazy init happens HERE (runtime only)
+            self._initialize_services()
 
+            doc = db.query(Document).filter(Document.id == doc_id).first()
             if not doc or not os.path.exists(doc.path):
                 raise ValueError("Document not found")
 
